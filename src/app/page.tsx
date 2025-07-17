@@ -7,7 +7,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useMiniKit, useAddFrame, useOpenUrl, useComposeCast, useAuthenticate } from '@coinbase/onchainkit/minikit';
+import { useMiniKit, useAddFrame, useComposeCast, useAuthenticate } from '@coinbase/onchainkit/minikit';
 import { 
   SparklesIcon, 
   CurrencyDollarIcon, 
@@ -32,7 +32,6 @@ export default function Home() {
   // MiniKit hooks for Coinbase Mini App features
   const { setFrameReady, isFrameReady, context } = useMiniKit();
   const addFrame = useAddFrame();
-  const openUrl = useOpenUrl();
   const { composeCast } = useComposeCast();
   const { signIn } = useAuthenticate();
   
