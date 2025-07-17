@@ -23,7 +23,7 @@ export default function Home() {
   
   // MiniKit hooks for Coinbase Mini App features
   const { setFrameReady, isFrameReady, context } = useMiniKit();
-  const { addFrame } = useAddFrame();
+  const addFrame = useAddFrame();
   const openUrl = useOpenUrl();
   const { composeCast } = useComposeCast();
   
@@ -159,7 +159,7 @@ export default function Home() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Automate your freelance payments with AI-powered milestone generation
           </p>
-          {context?.isFrame && (
+          {context && (
             <div className="mt-4 inline-flex items-center px-4 py-2 bg-purple-100 to-purple-800 rounded-full text-sm font-medium text-white">             <span className="mr-2">📱</span>
               Running in Coinbase Wallet Frame
             </div>
