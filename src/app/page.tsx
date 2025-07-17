@@ -7,7 +7,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useMiniKit, useAddFrame, useOpenUrl, useComposeCast } from '@coinbase/onchainkit/minikit';
+import { useMiniKit, useAddFrame, useOpenUrl, useComposeCast, useAuthenticate } from '@coinbase/onchainkit/minikit';
 import { 
   SparklesIcon, 
   CurrencyDollarIcon, 
@@ -34,6 +34,7 @@ export default function Home() {
   const addFrame = useAddFrame();
   const openUrl = useOpenUrl();
   const { composeCast } = useComposeCast();
+  const { signIn } = useAuthenticate();
   
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState(0);
@@ -52,6 +53,19 @@ export default function Home() {
       setFrameReady();
     }
   }, [isFrameReady, setFrameReady]);
+
+  const handleSignIn = async () => {
+    setLoading(true);
+    try {
+      await signIn();
+    } catch (error) {
+      console.error('Sign-in error:', error);
+      toast.error('Failed to sign in');
+    }
+    setLoading(false);
+  };
+
+  const isInMiniApp = !!context; // True if in frame/mini app mode
 
   const handleGenerate = async () => {
     if (!description || amount <= 0) {
@@ -185,61 +199,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        {!isConnected ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Connect Wallet Section */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <SparklesIcon className="h-8 w-8 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Started</h2>
-                <p className="text-gray-600 mb-8">
-                  Connect your wallet to start creating AI-powered freelance invoices on Base
-                </p>
-                <div className="space-y-4">
-                  <ConnectButton />
-                  <p className="text-sm text-gray-500">
-                    Powered by Base & Coinbase for secure, gasless flows
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Features Preview */}
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <CpuChipIcon className="h-8 w-8 text-indigo-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">AI Milestone Generation</h3>
-                </div>
-                <p className="text-gray-600">
-                  Smartly break down projects into payable steps with one click. Our AI analyzes your project description and creates optimal payment milestones.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <CurrencyDollarIcon className="h-8 w-8 text-green-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">Onchain Payments</h3>
-                </div>
-                <p className="text-gray-600">
-                  Escrow USDC, auto-release funds, and earn fees via agents. Secure, transparent, and automated payment flows on Base.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <ShareIcon className="h-8 w-8 text-blue-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">Farcaster Frames</h3>
-                </div>
-                <p className="text-gray-600">
-                  Share invoices socially and save as frames in your wallet. Build your reputation and discover new opportunities.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
+        {isConnected ? (
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             {/* Wallet Info */}
             <div className="mb-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
@@ -349,6 +309,119 @@ export default function Home() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        ) : isInMiniApp ? (
+          // In mini app: Assume auto-auth; show sign-in if not connected
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <SparklesIcon className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to Your Mini App</h2>
+                <p className="text-gray-600 mb-8">
+                  Sign in to start creating AI-powered freelance invoices
+                </p>
+                <button
+                  onClick={handleSignIn}
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {loading ? 'Signing In...' : 'Sign In with Farcaster'}
+                </button>
+                <p className="text-sm text-gray-500 mt-4">
+                  Already authenticated in Coinbase Wallet
+                </p>
+              </div>
+            </div>
+
+            {/* Features Preview */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center mb-4">
+                  <CpuChipIcon className="h-8 w-8 text-indigo-600 mr-3" />
+                  <h3 className="text-xl font-semibold text-gray-900">AI Milestone Generation</h3>
+                </div>
+                <p className="text-gray-600">
+                  Smartly break down projects into payable steps with one click. Our AI analyzes your project description and creates optimal payment milestones.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center mb-4">
+                  <CurrencyDollarIcon className="h-8 w-8 text-green-600 mr-3" />
+                  <h3 className="text-xl font-semibold text-gray-900">Onchain Payments</h3>
+                </div>
+                <p className="text-gray-600">
+                  Escrow USDC, auto-release funds, and earn fees via agents. Secure, transparent, and automated payment flows on Base.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center mb-4">
+                  <ShareIcon className="h-8 w-8 text-blue-600 mr-3" />
+                  <h3 className="text-xl font-semibold text-gray-900">Farcaster Frames</h3>
+                </div>
+                <p className="text-gray-600">
+                  Share invoices socially and save as frames in your wallet. Build your reputation and discover new opportunities.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Standalone: Show connect button
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Connect Wallet Section */}
+            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <SparklesIcon className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Started</h2>
+                <p className="text-gray-600 mb-8">
+                  Connect your wallet to start creating AI-powered freelance invoices on Base
+                </p>
+                <div className="space-y-4">
+                  <ConnectButton />
+                  <p className="text-sm text-gray-500">
+                    Powered by Base & Coinbase for secure, gasless flows
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Features Preview */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center mb-4">
+                  <CpuChipIcon className="h-8 w-8 text-indigo-600 mr-3" />
+                  <h3 className="text-xl font-semibold text-gray-900">AI Milestone Generation</h3>
+                </div>
+                <p className="text-gray-600">
+                  Smartly break down projects into payable steps with one click. Our AI analyzes your project description and creates optimal payment milestones.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center mb-4">
+                  <CurrencyDollarIcon className="h-8 w-8 text-green-600 mr-3" />
+                  <h3 className="text-xl font-semibold text-gray-900">Onchain Payments</h3>
+                </div>
+                <p className="text-gray-600">
+                  Escrow USDC, auto-release funds, and earn fees via agents. Secure, transparent, and automated payment flows on Base.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center mb-4">
+                  <ShareIcon className="h-8 w-8 text-blue-600 mr-3" />
+                  <h3 className="text-xl font-semibold text-gray-900">Farcaster Frames</h3>
+                </div>
+                <p className="text-gray-600">
+                  Share invoices socially and save as frames in your wallet. Build your reputation and discover new opportunities.
+                </p>
+              </div>
             </div>
           </div>
         )}
