@@ -7,8 +7,6 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { DynamicConnectButton } from '@dynamic-labs/sdk-react-core';
-import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 const CONTRACT_ADDRESS = '0xe22EAfa82934Be3049B5AD3B2514A123bb7F74F3';
 
 interface Invoice {
@@ -25,7 +23,6 @@ interface Invoice {
 export default function Dashboard() {
   const { address } = useAccount();
   const { writeContract } = useWriteContract();
-  const { primaryWallet } = useDynamicContext();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -136,51 +133,7 @@ export default function Dashboard() {
   const handleComplete = async (invoiceId: number, milestoneIndex: number) => {
     try {
       setLoading(true);
-      if (primaryWallet) {
-        // Use Smart Wallet if available, otherwise fallback to regular transaction
-        try {
-          // Try to use Smart Wallet features if available
-          await writeContract({
-            address: CONTRACT_ADDRESS,
-            abi: [
-              {
-                inputs: [
-                  { internalType: 'uint256', name: '_invoiceId', type: 'uint256' },
-                  { internalType: 'uint256', name: '_milestoneIndex', type: 'uint256' },
-                ],
-                name: 'completeMilestone',
-                outputs: [],
-                stateMutability: 'nonpayable',
-                type: 'function',
-              },
-            ],
-            functionName: 'completeMilestone',
-            args: [BigInt(invoiceId), BigInt(milestoneIndex)],
-          });
-          toast.success('Milestone completed with Smart Wallet! 🚀');
-        } catch (smartWalletError) {
-          console.log('Smart Wallet not available, using regular transaction');
-          // Fallback to regular transaction
-          await writeContract({
-            address: CONTRACT_ADDRESS,
-            abi: [
-              {
-                inputs: [
-                  { internalType: 'uint256', name: '_invoiceId', type: 'uint256' },
-                  { internalType: 'uint256', name: '_milestoneIndex', type: 'uint256' },
-                ],
-                name: 'completeMilestone',
-                outputs: [],
-                stateMutability: 'nonpayable',
-                type: 'function',
-              },
-            ],
-            functionName: 'completeMilestone',
-            args: [BigInt(invoiceId), BigInt(milestoneIndex)],
-          });
-          toast.success('Milestone completed!');
-        }
-      } else {
+      if (address) { // Use address directly as there's no primaryWallet
         // Regular wallet transaction
         await writeContract({
           address: CONTRACT_ADDRESS,
@@ -200,6 +153,8 @@ export default function Dashboard() {
           args: [BigInt(invoiceId), BigInt(milestoneIndex)],
         });
         toast.success('Milestone completed!');
+      } else {
+        toast.error('Wallet not connected.');
       }
     } catch (err) {
       toast.error('Error completing milestone');
@@ -230,10 +185,10 @@ export default function Dashboard() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             View and manage your freelance invoices with Smart Wallet technology
           </p>
-          {primaryWallet && (
+          {address && (
             <div className="mt-4 inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
               <span className="mr-2">✨</span>
-              Smart Wallet Connected - Gasless Transactions Available
+              Wallet Connected - Gasless Transactions Available
             </div>
           )}
         </div>
@@ -254,11 +209,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div>
-                  <DynamicConnectButton 
-                    buttonClassName="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 rounded-lg transition-all transform hover:scale-105"
-                  >
-                    Connect with Coinbase Smart Wallet
-                  </DynamicConnectButton>
+                  <ConnectButton />
                 </div>
               </div>
             </div>
@@ -279,7 +230,7 @@ export default function Dashboard() {
                 <div className="text-center">
                   <p className="text-sm text-gray-600">Wallet Type</p>
                   <p className="text-lg font-semibold text-green-600">
-                    {primaryWallet ? 'Smart Wallet' : 'Regular Wallet'}
+                    {address ? 'Wallet' : 'No Wallet'}
                   </p>
                 </div>
               </div>
