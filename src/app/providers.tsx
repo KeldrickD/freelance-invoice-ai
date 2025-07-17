@@ -8,16 +8,17 @@ import { RainbowKitProvider, getDefaultConfig, lightTheme } from '@rainbow-me/ra
 import { MiniKitProvider } from '@coinbase/onchainkit/minikit';
 import '@rainbow-me/rainbowkit/styles.css';
 
-const config = createConfig(
-  getDefaultConfig({
+const config = createConfig({
+  chains: [baseSepolia],
+  transports: {
+    [baseSepolia.id]: http(),
+  },
+  connectors: getDefaultConfig({
     appName: 'Freelance Invoice AI',
     projectId: 'YOUR_WALLETCONNECT_PROJECT_ID',
     chains: [baseSepolia],
-    transports: {
-      [baseSepolia.id]: http(),
-    },
-  })
-);
+  }).connectors,
+});
 
 const queryClient = new QueryClient();
 
