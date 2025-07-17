@@ -9,19 +9,40 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@coinbase/cdp-sdk": "^1.26.0",
+    "@coinbase/onchainkit": "^0.38.17",
+    "@coinbase/wallet-sdk": "^4.3.6",
+    "@dynamic-labs/coinbase": "^0.18.30",
+    "@dynamic-labs/sdk-react-core": "^4.24.0",
+    "@dynamic-labs/wagmi-connector": "^4.24.0",
+    "@openzeppelin/contracts": "^5.3.0",
+    "@rainbow-me/rainbowkit": "^2.2.8",
+    "@tanstack/react-query": "^5.83.0",
+    "@walletconnect/ethereum-provider": "^2.21.4",
+    "axios": "^1.10.0",
+    "cors": "^2.8.5",
+    "ethers": "^6.15.0",
+    "express": "^5.1.0",
+    "hardhat": "^2.25.0",
+    "next": "15.4.1",
+    "openai": "^5.10.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.4.1"
+    "react-toastify": "^11.0.5",
+    "viem": "^2.32.0",
+    "wagmi": "^2.15.7"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "dotenv": "^16.3.1",
     "eslint": "^9",
     "eslint-config-next": "15.4.1",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
