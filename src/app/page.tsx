@@ -7,7 +7,6 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { DynamicConnectButton } from '@dynamic-labs/sdk-react-core';
 import { useMiniKit, useAddFrame, useOpenUrl, useComposeCast } from '@coinbase/onchainkit/minikit';
 const CONTRACT_ADDRESS = '0xe22Afa829343049B5AD351423b7F74F3';
 const USDC_ADDRESS = '0x036D53842c54266347929541318dCF7';
@@ -183,11 +182,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <DynamicConnectButton 
-                    buttonClassName="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 rounded-lg transition-all transform hover:scale-105"
-                  >
-                    Connect with Coinbase Smart Wallet
-                  </DynamicConnectButton>
+                  <ConnectButton />
                 </div>
               </div>
             </div>
