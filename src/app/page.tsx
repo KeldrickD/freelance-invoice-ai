@@ -170,72 +170,68 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center p-6">
       <ToastContainer />
       
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-6">
-              <RocketLaunchIcon className="h-16 w-16 text-indigo-600 mr-4" />
-              <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Freelance Invoice AI
-              </h1>
-            </div>
-            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Automate your freelance payments with AI-powered milestone generation, onchain escrow, and revenue-generating agents. Built for seamless wallet-native experiences.
-            </p>
-            {context && (
-              <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-sm font-medium text-white mb-8">
-                <span className="mr-2">📱</span>
-                Running in Coinbase Wallet Frame
+      <header className="text-center mt-8 mb-8">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <RocketLaunchIcon className="h-8 w-8 text-indigo-600" />
+          <h1 className="text-4xl font-bold text-indigo-800">
+            Freelance Invoice AI
+          </h1>
+        </div>
+        <p className="text-lg text-gray-600 mb-2">
+          AI milestones, onchain payments & frames on Base.
+        </p>
+        {context && (
+          <div className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-xs font-medium text-white mt-2">
+            <span className="mr-1">📱</span>
+            Mini App Mode
+          </div>
+        )}
+        <p className="text-sm text-gray-500 mt-2">
+          Built on Base with Coinbase CDP tools
+        </p>
+      </header>
+
+      {/* Core Action Area */}
+      <section className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg">
+        {isConnected || isInMiniApp ? (
+          <div>
+            {/* Wallet Info - Subtle */}
+            {address && (
+              <div className="text-center mb-4">
+                <p className="text-sm text-gray-500">Connected</p>
+                <p className="font-mono text-sm text-gray-700">
+                  {address?.slice(0, 6)}...{address?.slice(-4)}
+                </p>
+                {usdcBalance && (
+                  <p className="text-xs text-green-600 mt-1">
+                    {parseFloat(formatUnits(usdcBalance.value, 6)).toFixed(2)} USDC
+                  </p>
+                )}
               </div>
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        {isConnected ? (
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-            {/* Wallet Info */}
-            <div className="mb-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Connected Address</p>
-                  <p className="font-mono text-lg font-semibold text-gray-900">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600 mb-1">USDC Balance</p>
-                  <p className="text-lg font-semibold text-green-600">
-                    {usdcBalance ? `${parseFloat(formatUnits(usdcBalance.value, 6)).toFixed(2)} USDC` : 'Loading...'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Invoice Creation Form */}
-            <div className="space-y-6">
+            {/* AI Form */}
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Project Description
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your project (e.g., Build a React dashboard with real-time data visualization)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                   rows={3}
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Total Amount (USDC)
                   </label>
                   <input
@@ -243,11 +239,11 @@ export default function Home() {
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
                     placeholder="1000"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Freelancer Address
                   </label>
                   <input
@@ -255,188 +251,128 @@ export default function Home() {
                     value={freelancerAddress}
                     onChange={(e) => setFreelancerAddress(e.target.value)}
                     placeholder="0x..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-4">
-                <button
-                  onClick={handleGenerate}
-                  disabled={loading || !description || amount <= 0}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {loading ? 'Generating...' : 'Generate AI Milestones'}
-                </button>
-              </div>
+              <button
+                onClick={handleGenerate}
+                disabled={loading || !description || amount <= 0}
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {loading ? 'Generating...' : 'Generate AI Milestones'}
+              </button>
 
               {/* Generated Milestones */}
               {milestones && milestones.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Generated Milestones</h3>
-                  <div className="space-y-3">
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Generated Milestones</h3>
+                  <div className="space-y-2 mb-4">
                     {milestones.map((milestone, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <span className="font-medium text-gray-900">{milestone.name}</span>
-                        <span className="text-green-600 font-semibold">{milestone.amount} USDC</span>
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="font-medium text-gray-900 text-sm">{milestone.name}</span>
+                        <span className="text-green-600 font-semibold text-sm">{milestone.amount} USDC</span>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="mt-6 flex flex-wrap gap-4">
+                  <div className="space-y-3">
                     <button
                       onClick={handleCreate}
                       disabled={loading}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       {loading ? 'Creating...' : 'Create Onchain Invoice'}
                     </button>
                     
-                    <button
-                      onClick={handleSaveInvoiceAsFrame}
-                      className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition-all transform hover:scale-105"
-                    >
-                      Save as Frame
-                    </button>
-                    
-                    <button
-                      onClick={handleShareInvoice}
-                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105"
-                    >
-                      Share on Farcaster
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSaveInvoiceAsFrame}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-2 px-3 rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition-all transform hover:scale-105 text-sm"
+                      >
+                        Save as Frame
+                      </button>
+                      
+                      <button
+                        onClick={handleShareInvoice}
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 text-sm"
+                      >
+                        Share on Farcaster
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </div>
-        ) : isInMiniApp ? (
-          // In mini app: Assume auto-auth; show sign-in if not connected
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <SparklesIcon className="h-8 w-8 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Welcome to Your Mini App</h2>
-                <p className="text-gray-600 mb-8">
-                  Sign in to start creating AI-powered freelance invoices
-                </p>
-                <button
-                  onClick={handleSignIn}
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {loading ? 'Signing In...' : 'Sign In with Farcaster'}
-                </button>
-                <p className="text-sm text-gray-500 mt-4">
-                  Already authenticated in Coinbase Wallet
-                </p>
-              </div>
-            </div>
-
-            {/* Features Preview */}
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <CpuChipIcon className="h-8 w-8 text-indigo-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">AI Milestone Generation</h3>
-                </div>
-                <p className="text-gray-600">
-                  Smartly break down projects into payable steps with one click. Our AI analyzes your project description and creates optimal payment milestones.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <CurrencyDollarIcon className="h-8 w-8 text-green-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">Onchain Payments</h3>
-                </div>
-                <p className="text-gray-600">
-                  Escrow USDC, auto-release funds, and earn fees via agents. Secure, transparent, and automated payment flows on Base.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <ShareIcon className="h-8 w-8 text-blue-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">Farcaster Frames</h3>
-                </div>
-                <p className="text-gray-600">
-                  Share invoices socially and save as frames in your wallet. Build your reputation and discover new opportunities.
-                </p>
-              </div>
-            </div>
-          </div>
         ) : (
-          // Standalone: Show connect button
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Connect Wallet Section */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <SparklesIcon className="h-8 w-8 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Started</h2>
-                <p className="text-gray-600 mb-8">
-                  Connect your wallet to start creating AI-powered freelance invoices on Base
-                </p>
-                <div className="space-y-4">
-                  <ConnectButton />
-                  <p className="text-sm text-gray-500">
-                    Powered by Base & Coinbase for secure, gasless flows
-                  </p>
-                </div>
-              </div>
+          // Not connected - show sign-in button
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <SparklesIcon className="h-8 w-8 text-white" />
             </div>
-
-            {/* Features Preview */}
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <CpuChipIcon className="h-8 w-8 text-indigo-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">AI Milestone Generation</h3>
-                </div>
-                <p className="text-gray-600">
-                  Smartly break down projects into payable steps with one click. Our AI analyzes your project description and creates optimal payment milestones.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <CurrencyDollarIcon className="h-8 w-8 text-green-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">Onchain Payments</h3>
-                </div>
-                <p className="text-gray-600">
-                  Escrow USDC, auto-release funds, and earn fees via agents. Secure, transparent, and automated payment flows on Base.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center mb-4">
-                  <ShareIcon className="h-8 w-8 text-blue-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-gray-900">Farcaster Frames</h3>
-                </div>
-                <p className="text-gray-600">
-                  Share invoices socially and save as frames in your wallet. Build your reputation and discover new opportunities.
-                </p>
-              </div>
-            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Ready to Create AI Invoices?</h2>
+            <p className="text-gray-600 mb-6 text-sm">
+              Sign in to start generating milestones and creating onchain invoices
+            </p>
+            <button
+              onClick={handleSignIn}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {loading ? 'Signing In...' : 'Sign In to Start'}
+            </button>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex items-center justify-center mb-4">
-            <ShieldCheckIcon className="h-6 w-6 text-indigo-400 mr-2" />
-            <span className="text-lg font-semibold">Built for Code:NYC Hackathon</span>
+      {/* Features Teaser - Only show if not in mini app mode or if connected */}
+      {(!isInMiniApp || isConnected) && (
+        <section className="mt-8 grid grid-cols-1 gap-4 max-w-lg w-full">
+          <div className="bg-white p-4 rounded-lg shadow-md border border-gray-100">
+            <div className="flex items-center gap-3">
+              <CpuChipIcon className="h-5 w-5 text-indigo-600" />
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">AI Milestones</h3>
+                <p className="text-gray-600 text-xs">Instant project breakdown with smart milestone generation.</p>
+              </div>
+            </div>
           </div>
-          <p className="text-gray-400">
-            Powered by Base, Coinbase CDP & xAI | Secure • Fast • Decentralized
-          </p>
-        </div>
+          
+          <div className="bg-white p-4 rounded-lg shadow-md border border-gray-100">
+            <div className="flex items-center gap-3">
+              <ShieldCheckIcon className="h-5 w-5 text-green-600" />
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Onchain Escrow</h3>
+                <p className="text-gray-600 text-xs">Secure USDC payments with automated milestone releases.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg shadow-md border border-gray-100">
+            <div className="flex items-center gap-3">
+              <ShareIcon className="h-5 w-5 text-blue-600" />
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Frames & Sharing</h3>
+                <p className="text-gray-600 text-xs">Save as frames and share on Farcaster for viral growth.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Footer - Slim and contextual */}
+      <footer className="mt-auto py-4 text-center text-sm text-gray-500">
+        <p>Built for Code:NYC Hackathon | Powered by Base, Coinbase CDP & xAI</p>
+        {isConnected && (
+          <a 
+            href="/dashboard" 
+            className="inline-block mt-2 text-indigo-600 hover:text-indigo-700 font-medium"
+          >
+            View My Invoices →
+          </a>
+        )}
       </footer>
     </div>
   );
