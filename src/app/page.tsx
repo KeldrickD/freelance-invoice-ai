@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useBalance, useWriteContract } from 'wagmi';
-import { parseUnits, formatUnits } from 'viem';
+import { useAccount, useBalance, useWriteContract, usePublicClient } from 'wagmi';
+import { parseUnits, formatUnits, isAddress } from 'viem';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -28,6 +28,7 @@ interface Milestone {
 export default function Home() {
   const { address, isConnected } = useAccount();
   const { writeContract } = useWriteContract();
+  const publicClient = usePublicClient();
   
   // MiniKit hooks for Coinbase Mini App features
   const { setFrameReady, isFrameReady, context } = useMiniKit();
@@ -40,6 +41,7 @@ export default function Home() {
   const [freelancerAddress, setFreelancerAddress] = useState('');
   const [milestones, setMilestones] = useState<Milestone[]>();
   const [loading, setLoading] = useState(false);
+  const [resolvingAddress, setResolvingAddress] = useState(false);
 
   const { data: usdcBalance } = useBalance({
     address: address,
@@ -65,6 +67,39 @@ export default function Home() {
   };
 
   const isInMiniApp = !!context; // True if in frame/mini app mode
+
+  const resolveFreelancerAddress = async (input: string) => {
+    if (!publicClient) {
+      toast.error('Wallet client not available');
+      return null;
+    }
+    
+    if (isAddress(input)) {
+      return input; // Already a valid 0x address
+    } else if (input.endsWith('.eth')) {
+      try {
+        setResolvingAddress(true);
+        const resolved = await publicClient.getEnsAddress({ 
+          name: input.toLowerCase(),
+          universalResolverAddress: '0xC049A6cAF0663a8DA85f8c4572Ad61f4f0f26bEb' // Base's universal resolver
+        });
+        if (resolved) {
+          toast.success(`Resolved ${input} to ${resolved.slice(0, 6)}...${resolved.slice(-4)}`);
+          return resolved;
+        } else {
+          throw new Error('Name not resolved');
+        }
+      } catch (error) {
+        toast.error(`Invalid ENS name—could not resolve ${input}. Try a .base.eth or mainnet .eth.`);
+        return null;
+      } finally {
+        setResolvingAddress(false);
+      }
+    } else {
+      toast.error('Enter a valid 0x address or ENS name (.eth).');
+      return null;
+    }
+  };
 
   const handleGenerate = async () => {
     if (!description || amount <= 0) {
@@ -96,6 +131,14 @@ export default function Home() {
 
     try {
       setLoading(true);
+      
+      // Resolve freelancer address if it's an ENS name
+      const resolvedAddress = await resolveFreelancerAddress(freelancerAddress);
+      if (!resolvedAddress) {
+        setLoading(false);
+        return; // Error already shown by resolveFreelancerAddress
+      }
+
       const milestoneNames = milestones.map(m => m.name);
       const milestoneAmounts = milestones.map(m => parseUnits(m.amount.toString(), 6));
 
@@ -117,7 +160,9 @@ export default function Home() {
           }
         ],
         functionName: 'createInvoice',
-        args: [freelancerAddress as `0x${string}`, parseUnits(amount.toString(), 6), milestoneNames, milestoneAmounts, description],
+        args: [resolvedAddress as `0x${string}`, parseUnits(amount.toString(), 6), milestoneNames, milestoneAmounts, description],
+        // Base Pay gas sponsorship
+        gas: 500000n, // Estimated gas limit
       });
       
       toast.success('Invoice created successfully!');
@@ -246,13 +291,23 @@ export default function Home() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Freelancer Address
                   </label>
-                  <input
-                    type="text"
-                    value={freelancerAddress}
-                    onChange={(e) => setFreelancerAddress(e.target.value)}
-                    placeholder="0x..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={freelancerAddress}
+                      onChange={(e) => setFreelancerAddress(e.target.value)}
+                      placeholder="0x... or ENS name like user.eth"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm pr-8"
+                    />
+                    {resolvingAddress && (
+                      <div className="absolute right-2 top-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Supports .eth and .base.eth names
+                  </p>
                 </div>
               </div>
 
@@ -356,6 +411,16 @@ export default function Home() {
               <div>
                 <h3 className="font-semibold text-gray-900 text-sm">Frames & Sharing</h3>
                 <p className="text-gray-600 text-xs">Save as frames and share on Farcaster for viral growth.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg shadow-md border border-gray-100">
+            <div className="flex items-center gap-3">
+              <CurrencyDollarIcon className="h-5 w-5 text-purple-600" />
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">Base Pay Integration</h3>
+                <p className="text-gray-600 text-xs">ENS name resolution & gas sponsorship for seamless UX.</p>
               </div>
             </div>
           </div>

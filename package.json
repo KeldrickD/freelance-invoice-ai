@@ -9,12 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@alchemy/aa-accounts": "^3.19.0",
+    "@alchemy/aa-alchemy": "^3.19.0",
+    "@alchemy/aa-core": "^3.19.0",
     "@coinbase/cdp-sdk": "^1.26.0",
     "@coinbase/onchainkit": "^0.38.17",
     "@coinbase/wallet-sdk": "^4.3.6",
     "@dynamic-labs/coinbase": "^0.18.30",
     "@dynamic-labs/sdk-react-core": "^4.24.0",
     "@dynamic-labs/wagmi-connector": "^4.24.0",
+    "@farcaster/frame-sdk": "^0.1.7",
     "@heroicons/react": "^2.2.0",
     "@openzeppelin/contracts": "^5.3.0",
     "@rainbow-me/rainbowkit": "^2.2.8",

@@ -1,13 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAccount, useReadContract, useWriteContract } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAccount, useReadContract, useWriteContract, usePublicClient, useBalance } from 'wagmi';
 import { formatUnits } from 'viem';
+import { normalize } from 'viem/ens';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-const CONTRACT_ADDRESS = '0xe22EAfa82934Be3049B5AD3B2514A123bb7F74F3';
+
+const CONTRACT_ADDRESS = '0xe22Afa829343049B5AD351423b7F74F3';
+const USDC_ADDRESS = '0x036D53842c54266347929541318dCF7';
+
+const DEFAULT_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNFNUU3RUIiLz4KPHBhdGggZD0iTTE2IDhDMTguMjA5MSA4IDIwIDkuNzkwODYgMjAgMTJDMjAgMTQuMjA5MSAxOC4yMDkxIDE2IDE2IDE2QzEzLjc5MDkgMTYgMTIgMTQuMjA5MSAxMiAxMkMxMiA5Ljc5MDg2IDEzLjc5MDkgOCAxNiA4WiIgZmlsbD0iIzY4NzM4MCIvPgo8cGF0aCBkPSJNOCAyNEM4IDIwLjY4NjMgMTAuNjg2MyAxOCAxNCAxOEgxOEMyMS4zMTM3IDE4IDI0IDIwLjY4NjMgMjQgMjRWMjZIMFYyNFoiIGZpbGw9IiM2ODczODAiLz4KPC9zdmc+';
 
 interface Invoice {
   id: number;
@@ -20,330 +25,361 @@ interface Invoice {
   milestoneCompleted: boolean[];
 }
 
+interface ResolvedInvoice extends Invoice {
+  freelancerName?: string | null;
+  clientName?: string | null;
+  freelancerAvatar?: string | null;
+  clientAvatar?: string | null;
+}
+
 export default function Dashboard() {
   const { address } = useAccount();
   const { writeContract } = useWriteContract();
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const publicClient = usePublicClient();
+  const [invoices, setInvoices] = useState<ResolvedInvoice[]>([]);
   const [loading, setLoading] = useState(false);
+  const [nextId, setNextId] = useState<bigint>(0n);
 
-  // Fetch nextInvoiceId
-  const { data: nextId } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: [
-      {
-        inputs: [],
-        outputs: [{ internalType: 'uint256', name: 'nextInvoiceId', type: 'uint256' }],
-        stateMutability: 'view',
-        type: 'function',
-      },
-    ],
-    functionName: 'nextInvoiceId',
+  const { data: usdcBalance } = useBalance({
+    address: address,
+    token: USDC_ADDRESS as `0x${string}`,
   });
 
-  // Fetch invoice details
-  const { data: invoiceDetails } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: [
-      {
-        inputs: [{ internalType: 'uint256', name: '_invoiceId', type: 'uint256' }],
-        name: 'getInvoice',
-        outputs: [
-          { internalType: 'address', name: 'freelancer', type: 'address' },
-          { internalType: 'address', name: 'client', type: 'address' },
-          { internalType: 'uint256', name: 'totalAmount', type: 'uint256' },
-          { internalType: 'tuple[]', name: 'milestones', type: 'tuple[]', components: [
-            { internalType: 'string', name: 'name', type: 'string' },
-            { internalType: 'uint256', name: 'amount', type: 'uint256' },
-            { internalType: 'bool', name: 'completed', type: 'bool' },
-            { internalType: 'uint256', name: 'completedAt', type: 'uint256' }
-          ]},
-          { internalType: 'bool', name: 'paid', type: 'bool' },
-          { internalType: 'uint256', name: 'createdAt', type: 'uint256' },
-          { internalType: 'string', name: 'projectDescription', type: 'string' }
-        ],
-        stateMutability: 'view',
-        type: 'function',
-      },
-    ],
-    functionName: 'getInvoice',
-    args: [0n], // We'll fetch each invoice individually
-  });
-
-  // Fetch milestone amounts
-  const { data: milestoneAmounts } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: [
-      {
-        inputs: [{ internalType: 'uint256', name: '_invoiceId', type: 'uint256' }],
-        name: 'getMilestoneAmounts',
-        outputs: [{ internalType: 'uint256[]', name: '', type: 'uint256' }],
-        stateMutability: 'view',
-        type: 'function',
-      },
-    ],
-    functionName: 'getMilestoneAmounts',
-    args: [0n], // We'll fetch each invoice individually
-  });
-
-  // Fetch milestone completion status
-  const { data: milestoneCompleted } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: [
-      {
-        inputs: [{ internalType: 'uint256', name: '_invoiceId', type: 'uint256' }],
-        name: 'getMilestoneCompleted',
-        outputs: [{ internalType: 'bool[]', name: '', type: 'bool[]' }],
-        stateMutability: 'view',
-        type: 'function',
-      },
-    ],
-    functionName: 'getMilestoneCompleted',
-    args: [0n], // We'll fetch each invoice individually
-  });
-
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      if (!nextId || Number(nextId) === 0) return;
-      setLoading(true);
-      const invs: Invoice[] = [];
-      for (let i = 0; i < Number(nextId); i++) {
-        try {
-          // Fetch invoice details
-          // ... (omitted for brevity)
-          invs.push({
-            id: i,
-            freelancer: '0x1234...5678',
-            client: '0x8765...4321',
-            totalAmount: BigInt(100 * 10 ** 6), // 1000 USDC with 6 decimals
-            paid: false,
-            projectDescription: `Project ${i + 1}`,
-            milestoneAmounts: [BigInt(300 * 10 ** 6), BigInt(400 * 10 ** 6), BigInt(300 * 10 ** 6)],
-            milestoneCompleted: [false, false, false],
-          });
-        } catch (error) {
-          console.error(`Error fetching invoice ${i}:`, error);
-        }
-      }
-      setInvoices(invs);
-      setLoading(false);
-    };
-    fetchInvoices();
-  }, [nextId]);
-
-  const handleComplete = async (invoiceId: number, milestoneIndex: number) => {
+  const resolveEnsDetails = async (addr: string) => {
+    if (!publicClient || !addr) return { name: null, avatar: null };
     try {
-      setLoading(true);
-      if (address) { // Use address directly as there's no primaryWallet
-        // Regular wallet transaction
-        await writeContract({
-          address: CONTRACT_ADDRESS,
+      const name = await publicClient.getEnsName({ 
+        address: addr as `0x${string}`,
+        universalResolverAddress: '0xC049A6cAF0663a8DA85f8c4572Ad61f4f0f26bEb' // Base's resolver
+      });
+      let avatar = null;
+      if (name) {
+        avatar = await publicClient.getEnsAvatar({ 
+          name: normalize(name),
+          universalResolverAddress: '0xC049A6cAF0663a8DA85f8c4572Ad61f4f0f26bEb', // Same resolver
+          assetGatewayUrls: { ipfs: 'https://cloudflare-ipfs.com' } // Optional: For IPFS avatars
+        });
+      }
+      return { name, avatar };
+    } catch (error) {
+      console.error('ENS resolution error:', error);
+      return { name: null, avatar: null };
+    }
+  };
+
+  const fetchInvoices = async () => {
+    if (!nextId || !address) return;
+    const invs: ResolvedInvoice[] = [];
+    
+    for (let i = 0; i < Number(nextId); i++) {
+      try {
+        const invoice = await publicClient?.readContract({
+          address: CONTRACT_ADDRESS as `0x${string}`,
           abi: [
             {
-              inputs: [
-                { internalType: 'uint256', name: '_invoiceId', type: 'uint256' },
-                { internalType: 'uint256', name: '_milestoneIndex', type: 'uint256' },
+              inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+              name: 'invoices',
+              outputs: [
+                { internalType: 'address', name: 'freelancer', type: 'address' },
+                { internalType: 'address', name: 'client', type: 'address' },
+                { internalType: 'uint256', name: 'totalAmount', type: 'uint256' },
+                { internalType: 'bool', name: 'paid', type: 'bool' },
+                { internalType: 'string', name: 'projectDescription', type: 'string' },
+                { internalType: 'uint256[]', name: 'milestoneAmounts', type: 'uint256[]' },
+                { internalType: 'bool[]', name: 'milestoneCompleted', type: 'bool[]' }
               ],
-              name: 'completeMilestone',
-              outputs: [],
-              stateMutability: 'nonpayable',
-              type: 'function',
-            },
+              stateMutability: 'view',
+              type: 'function'
+            }
           ],
-          functionName: 'completeMilestone',
-          args: [BigInt(invoiceId), BigInt(milestoneIndex)],
+          functionName: 'invoices',
+          args: [BigInt(i)]
         });
-        toast.success('Milestone completed!');
-      } else {
-        toast.error('Wallet not connected.');
+
+        if (invoice) {
+          const [freelancer, client, totalAmount, paid, projectDescription, milestoneAmounts, milestoneCompleted] = invoice;
+          
+          if (freelancer !== '0x0000000000000000000000000000000000000000') {
+            const [freelancerDetails, clientDetails] = await Promise.all([
+              resolveEnsDetails(freelancer),
+              resolveEnsDetails(client)
+            ]);
+
+            invs.push({
+              id: i,
+              freelancer,
+              client,
+              totalAmount,
+              paid,
+              projectDescription,
+              milestoneAmounts: [...milestoneAmounts],
+              milestoneCompleted: [...milestoneCompleted],
+              freelancerName: freelancerDetails.name,
+              freelancerAvatar: freelancerDetails.avatar,
+              clientName: clientDetails.name,
+              clientAvatar: clientDetails.avatar
+            });
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching invoice ${i}:`, error);
       }
-    } catch (err) {
-      toast.error('Error completing milestone');
-    } finally {
-      setLoading(false);
+    }
+    
+    setInvoices(invs);
+  };
+
+  const fetchNextId = async () => {
+    if (!address) return;
+    try {
+      const nextIdResult = await publicClient?.readContract({
+        address: CONTRACT_ADDRESS as `0x${string}`,
+        abi: [
+          {
+            inputs: [],
+            name: 'nextId',
+            outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+            stateMutability: 'view',
+            type: 'function'
+          }
+        ],
+        functionName: 'nextId'
+      });
+      setNextId(nextIdResult || 0n);
+    } catch (error) {
+      console.error('Error fetching nextId:', error);
     }
   };
 
-  const handleAutoComplete = async (invoiceId: number, milestoneIndex: number) => {
+  useEffect(() => {
+    fetchNextId();
+  }, [address]);
+
+  useEffect(() => {
+    if (nextId > 0n) {
+      fetchInvoices();
+    }
+  }, [nextId, address]);
+
+  const handlePayInvoice = async (invoiceId: number) => {
     try {
       setLoading(true);
-      const res = await axios.post('http://localhost:3001/trigger-agent-complete', { invoiceId, milestoneIndex });
-      toast.success('Agent auto-complete tx: ' + res.data.txHash);
-    } catch (err) {
-      toast.error('AgentKit error');
+      await writeContract({
+        address: CONTRACT_ADDRESS as `0x${string}`,
+        abi: [
+          {
+            inputs: [{ internalType: 'uint256', name: '_invoiceId', type: 'uint256' }],
+            name: 'payInvoice',
+            outputs: [],
+            stateMutability: 'nonpayable',
+            type: 'function'
+          }
+        ],
+        functionName: 'payInvoice',
+        args: [BigInt(invoiceId)]
+      });
+      toast.success('Payment successful!');
+      fetchInvoices(); // Refresh the list
+    } catch (error) {
+      toast.error('Payment failed');
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-6xl mx-auto p-6">
-        <ToastContainer />
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900">Invoice Dashboard</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            View and manage your freelance invoices with Smart Wallet technology
-          </p>
-          {address && (
-            <div className="mt-4 inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-              <span className="mr-2">✨</span>
-              Wallet Connected - Gasless Transactions Available
-            </div>
-          )}
+  const handleCompleteMilestone = async (invoiceId: number, milestoneIndex: number) => {
+    try {
+      setLoading(true);
+      await writeContract({
+        address: CONTRACT_ADDRESS as `0x${string}`,
+        abi: [
+          {
+            inputs: [
+              { internalType: 'uint256', name: '_invoiceId', type: 'uint256' },
+              { internalType: 'uint256', name: '_milestoneIndex', type: 'uint256' }
+            ],
+            name: 'completeMilestone',
+            outputs: [],
+            stateMutability: 'nonpayable',
+            type: 'function'
+          }
+        ],
+        functionName: 'completeMilestone',
+        args: [BigInt(invoiceId), BigInt(milestoneIndex)]
+      });
+      toast.success('Milestone completed!');
+      fetchInvoices(); // Refresh the list
+    } catch (error) {
+      toast.error('Failed to complete milestone');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!address) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Connect Your Wallet</h2>
+          <ConnectButton />
         </div>
-        {!address ? (
-          <div className="text-center py-16">
-            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-auto">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Connect Your Wallet</h2>
-              <div className="space-y-4">
-                <div>
-                  <ConnectButton />
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">or</span>
-                  </div>
-                </div>
-                <div>
-                  <ConnectButton />
-                </div>
-              </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <ToastContainer />
+      
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Invoice Dashboard</h1>
+              <p className="text-gray-600 mt-1">Manage your freelance invoices and payments</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Connected</p>
+              <p className="font-mono text-sm text-gray-700">
+                {address?.slice(0, 6)}...{address?.slice(-4)}
+              </p>
+              {usdcBalance && (
+                <p className="text-sm text-green-600 mt-1">
+                  {parseFloat(formatUnits(usdcBalance.value, 6)).toFixed(2)} USDC
+                </p>
+              )}
             </div>
           </div>
-        ) : (
-          <>
-            {/* Stats */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Total Invoices</p>
-                  <p className="text-3xl font-bold text-blue-600">{nextId ? Number(nextId) : 0}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Connected Address</p>
-                  <p className="font-mono text-sm text-gray-900 truncate">{address}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Wallet Type</p>
-                  <p className="text-lg font-semibold text-green-600">
-                    {address ? 'Wallet' : 'No Wallet'}
-                  </p>
-                </div>
-              </div>
+        </div>
+
+        {/* Invoices List */}
+        <div className="space-y-6">
+          {invoices.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+              <p className="text-gray-500">No invoices found. Create your first invoice!</p>
             </div>
-            {/* Invoices */}
-            {loading && (
-              <div className="text-center py-8">
-                <div className="inline-flex items-center px-4 bg-blue-100 text-blue-800">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                  Loading...
-                </div>
-              </div>
-            )}
-            <div className="space-y-6">
-              {invoices.map(inv => (
-                <div key={inv.id} className="bg-white rounded-2xl shadow-xl p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">Invoice #{inv.id}</h3>
-                      <p className="text-gray-600">{inv.projectDescription}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-green-600">{formatUnits(inv.totalAmount, 6)} USDC</p>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${inv.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                        {inv.paid ? 'Paid' : 'Pending'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <p className="text-sm text-gray-600">Freelancer</p>
-                      <p className="font-mono text-sm text-gray-900">{inv.freelancer}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Client</p>
-                      <p className="font-mono text-sm text-gray-900">{inv.client}</p>
-                    </div>
-                  </div>
+          ) : (
+            invoices.map((invoice) => (
+              <div key={invoice.id} className="bg-white rounded-2xl shadow-xl p-6">
+                <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Milestones</h4>
-                    <div className="space-y-3">
-                      {inv.milestoneAmounts.map((amt: bigint, idx: number) => (
-                        <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                          <div className="flex-1">
-                            <p className="font-medium">Milestone {idx + 1}</p>
-                            <p className="text-sm text-gray-600">{formatUnits(amt, 6)} USDC</p>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${inv.milestoneCompleted[idx] ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                              {inv.milestoneCompleted[idx] ? '✅ Completed' : '⏳ Pending'}
-                            </span>
-                            {!inv.milestoneCompleted[idx] && (
-                              <>
-                                <button 
-                                  onClick={() => handleComplete(inv.id, idx)} 
-                                  disabled={loading}
-                                  className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
-                                >
-                                  {loading ? 'Completing...' : 'Complete'}
-                                </button>
-                                <button 
-                                  onClick={() => handleAutoComplete(inv.id, idx)} 
-                                  disabled={loading}
-                                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
-                                >
-                                  {loading ? 'Processing...' : '🤖 AI Auto-Complete'}
-                                </button>
-                              </>
-                            )}
-                          </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Invoice #{invoice.id}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4">{invoice.projectDescription}</p>
+                    
+                    {/* Participants with Avatars */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-2">Freelancer:</p>
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={invoice.freelancerAvatar || DEFAULT_AVATAR} 
+                            alt="Freelancer Avatar" 
+                            className="w-8 h-8 rounded-full object-cover border-2 border-gray-200" 
+                            onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
+                          />
+                          <span className="font-medium text-gray-900">
+                            {invoice.freelancerName || `${invoice.freelancer.slice(0, 6)}...${invoice.freelancer.slice(-4)}`}
+                          </span>
                         </div>
-                      ))}
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-2">Client:</p>
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={invoice.clientAvatar || DEFAULT_AVATAR} 
+                            alt="Client Avatar" 
+                            className="w-8 h-8 rounded-full object-cover border-2 border-gray-200" 
+                            onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
+                          />
+                          <span className="font-medium text-gray-900">
+                            {invoice.clientName || `${invoice.client.slice(0, 6)}...${invoice.client.slice(-4)}`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-gray-900">
+                      {parseFloat(formatUnits(invoice.totalAmount, 6)).toFixed(2)} USDC
+                    </p>
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${
+                      invoice.paid 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {invoice.paid ? 'Paid' : 'Pending'}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-            {/* Features */}
-            <div className="mt-12 bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">💡 Dashboard Features</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <span className="mr-3 text-green-600">✅</span>
-                    <span>View all invoices created by your wallet</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="mr-3 text-green-600">✅</span>
-                    <span>Complete milestones to release payments</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="mr-3 text-green-600">✅</span>
-                    <span>Track payment status and amounts</span>
+
+                {/* Milestones */}
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Milestones</h4>
+                  <div className="space-y-2">
+                    {invoice.milestoneAmounts.map((amount, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-gray-900">
+                            Milestone {index + 1}
+                          </span>
+                          <span className="text-sm text-green-600 font-semibold">
+                            {parseFloat(formatUnits(amount, 6)).toFixed(2)} USDC
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            invoice.milestoneCompleted[index]
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {invoice.milestoneCompleted[index] ? 'Completed' : 'Pending'}
+                          </div>
+                          {!invoice.milestoneCompleted[index] && (
+                            <button
+                              onClick={() => handleCompleteMilestone(invoice.id, index)}
+                              disabled={loading}
+                              className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              Complete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <span className="mr-3 text-green-600">✅</span>
-                    <span>Manage multiple freelance projects</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="mr-3 text-purple-600">🤖</span>
-                    <span>AI Agent auto-completion (AgentKit integration)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="mr-3 text-blue-600">✨</span>
-                    <span>Smart Wallet gasless transactions</span>
-                  </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  {!invoice.paid && (
+                    <button
+                      onClick={() => handlePayInvoice(invoice.id)}
+                      disabled={loading}
+                      className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {loading ? 'Processing...' : 'Pay Invoice'}
+                    </button>
+                  )}
+                  <a
+                    href={`https://sepolia.basescan.org/address/${CONTRACT_ADDRESS}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 text-center"
+                  >
+                    View on Basescan
+                  </a>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

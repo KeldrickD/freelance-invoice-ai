@@ -1,243 +1,163 @@
-# 🚀 Freelance Invoice AI on Base
+# Freelance Invoice AI - Built on Base
 
-**AI-powered freelance invoice generation with Smart Wallet technology on Base**
+A cutting-edge freelance invoice management app built on Base with AI-powered milestone generation, onchain escrow, and seamless social sharing.
 
-A revolutionary dApp that automates freelance payments using AI milestone generation, Smart Wallet batching, gasless transactions, and MiniKit integration for viral distribution across Coinbase Wallet and Farcaster.
+## 🚀 Features
 
-## ✨ Features
+### Core Functionality
+- **AI-Powered Milestones**: Generate intelligent project milestones using xAI
+- **Onchain Escrow**: Secure USDC payments with automated milestone releases
+- **Smart Contract Integration**: Built on Base Sepolia with gas-optimized contracts
 
-### 🤖 AI-Powered Milestone Generation
-- **OpenAI GPT-4tegration**: Automatically generates logical project milestones
-- **Smart Amount Distribution**: AI calculates optimal milestone amounts based on project scope
-- **Customizable Workflows**: Supports various freelance project types
+### Base Ecosystem Integration
 
-### 💰 Smart Wallet Technology
-- **Coinbase Smart Wallet**: Passkey-based, account abstraction wallets
-- **Transaction Batching**: Combine USDC approval + invoice creation in one transaction
-- **Gasless Transactions**: Milestone completion without gas fees via paymaster
-- **Dynamic Integration**: Seamless Smart Wallet onboarding
+#### 🏷️ ENS Name Resolution
+- **Forward Resolution**: Enter `.eth` or `.base.eth` names instead of raw addresses
+- **Reverse Resolution**: Display human-readable names in dashboard
+- **Avatar Support**: Show profile pictures for resolved ENS names
+- **Cross-Chain Support**: Works with both mainnet `.eth` and Base `.base.eth` names
 
-### 📱 MiniKit Integration
-- **Frame Discovery**: App appears in Coinbase Wallet's discover section
-- **Farcaster Sharing**: One-click sharing with embedded dashboard links
-- **Viral Distribution**: Save invoices as frames, share on social feeds
-- **Notification System**: Milestone completions trigger wallet notifications
+#### 💳 Base Pay Features
+- **Gas Sponsorship**: Optimized gas limits for contract interactions
+- **Seamless UX**: No complex wallet setup required
+- **Base Chain Native**: Built specifically for Base ecosystem
 
-### 🔗 Multi-Wallet Support
-- **Coinbase Wallet**: Native integration with enhanced UX
-- **RainbowKit**: Polished wallet connection modal
-- **Base Sepolia**: Testnet deployment with USDC support
+#### 📱 MiniKit Integration
+- **Coinbase Mini App**: Full integration with Coinbase App
+- **Frame Support**: Save invoices as shareable Farcaster frames
+- **Social Sharing**: One-click sharing to Farcaster
+- **Context-Aware UI**: Different experiences for mini app vs standalone
 
-### 🤖 AI Agent Integration
-- **AgentKit Backend**: Autonomous milestone completion
-- **Auto-Processing**: AI agents can complete milestones automatically
-- **Notification System**: Real-time updates on milestone status
+#### 🔗 Farcaster Integration
+- **Frame Creation**: Save invoices as interactive frames
+- **Social Casts**: Share project milestones on Farcaster
+- **Viral Growth**: Built-in social features for project discovery
 
-## 🏗️ Architecture
+## 🛠️ Tech Stack
 
-```
-Frontend (Next.js 15 + TypeScript)
-├── MiniKit Integration (Frame discovery & social sharing)
-├── Smart Wallet (Dynamic + Coinbase)
-├── RainbowKit (Wallet connection UI)
-└── Wagmi (Ethereum interactions)
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Blockchain**: Base Sepolia, Wagmi, Viem
+- **AI**: xAI integration for milestone generation
+- **Social**: Farcaster frames, MiniKit
+- **Styling**: Tailwind CSS, Heroicons
+- **Deployment**: Vercel
 
-Backend (Node.js + Express)
-├── OpenAI GPT-4o (Milestone generation)
-├── AgentKit (Autonomous agents)
-└── Notification API (MiniKit integration)
-
-Smart Contracts (Solidity)
-├── InvoiceAgent (Invoice & milestone management)
-├── USDC Integration (Payment processing)
-└── Base Sepolia Deployment
-```
-
-## 🚀 Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 20+
 - npm or yarn
-- Coinbase Wallet or MetaMask
-- Base Sepolia testnet USDC
+- Base Sepolia testnet access
 
-### 1. Clone Repository
+### Installation
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/KeldrickD/freelance-invoice-ai.git
+git clone <repository-url>
 cd freelance-invoice-ai
 ```
 
-### 2. Install Dependencies
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-### 3. Environment Setup
-Create a `.env` file in the root directory:
-
-```env
-# OpenAI API Key
-OPENAI_API_KEY=your_openai_api_key
-
-# CDP API Key for MiniKit
-NEXT_PUBLIC_CDP_API_KEY=your_cdp_api_key
-
-# WalletConnect Project ID
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
-
-# Dynamic Environment ID
-NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
-
-# App Metadata for Frame Discovery
-NEXT_PUBLIC_APP_NAME=Freelance Invoice AI"
-NEXT_PUBLIC_APP_DESCRIPTION="AI-powered freelance invoice generation with Smart Wallet technology on Base"
-NEXT_PUBLIC_APP_URL=https://your-domain.com
-NEXT_PUBLIC_APP_ICON=https://your-domain.com/icon.png
-NEXT_PUBLIC_SPLASH_IMAGE=https://your-domain.com/splash.png
-NEXT_PUBLIC_APP_HERO_IMAGE=https://your-domain.com/hero.png
-NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR=#052ff
-
-# Optional: Alchemy API Key for better RPC
-NEXT_PUBLIC_ALCHEMY_API_KEY=your_alchemy_api_key
-
-# Optional: OpenFort API Key for gasless transactions
-NEXT_PUBLIC_OPENFORT_API_KEY=your_openfort_api_key
-```
-
-### 4. Start Backend Server
+3. Set up environment variables:
 ```bash
-cd backend
-npm install
-node server.js
+cp .env.example .env.local
 ```
 
-### 5Start Frontend
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:300 to use the app!
-
-## 🎯 How It Works
-
-### 1. **Connect Wallet**
-- Choose between Coinbase Wallet or Smart Wallet
-- App detects if running in Coinbase Wallet frame
-
-###2enerate Milestones**
-- Enter project description and total USDC amount
-- AI generates logical milestones with optimal amount distribution
-- Review and customize if needed
-
-### 3. **Create Invoice**
-- Approve USDC spending for the contract
-- Create onchain invoice (escrows USDC)
-- Smart Wallet users get batched transactions
-
-###4omplete Milestones**
-- Manually complete milestones or use AI auto-completion
-- Smart Wallet users get gasless milestone completion
-- Payments are automatically released to freelancer
-
-### 5. **Share & Discover**
-- Save invoice as frame in wallet
-- Share on Farcaster with embedded dashboard
-- App appears in Coinbase Wallet discover section
-
-## 🔧 Smart Contracts
-
-### InvoiceAgent Contract
-- **Address**: `0xe22fa829343049B5AD351423b7F743` (Base Sepolia)
-- **Features**: Invoice creation, milestone management, USDC escrow
-- **Fee**: 2% on total invoice amount
-
-### Key Functions
-```solidity
-createInvoice(address _freelancer, uint256 _totalAmount, string] _milestoneNames, uint256[] _milestoneAmounts, string _projectDescription)
-completeMilestone(uint256invoiceId, uint256 _milestoneIndex)
-getInvoice(uint256 _invoiceId)
+5. Start the backend server (for AI features):
+```bash
+cd backend
+npm install
+npm start
 ```
 
-## 📱 MiniKit Features
+## 📖 Usage
 
-### Frame Discovery
-- **Farcaster Manifest**: `/.well-known/farcaster.json`
-- **OpenGraph Metadata**: Frame-ready social sharing
-- **Notification API**: `/api/notification` for milestone updates
+### Creating Invoices
+1. Connect your wallet (supports Coinbase Wallet, MetaMask, etc.)
+2. Enter project description and total amount
+3. Input freelancer address (supports ENS names like `user.eth` or `user.base.eth`)
+4. Generate AI-powered milestones
+5. Create onchain invoice with gas sponsorship
 
-### Social Integration
-- **Save as Frame**: Store invoices in users wallet
-- **Farcaster Sharing**: One-click social sharing
-- **Basescan Integration**: Direct blockchain explorer links
+### Managing Invoices
+- View all invoices in the dashboard
+- See ENS names and avatars for participants
+- Complete milestones to release payments
+- Share invoices as Farcaster frames
 
-## 🎨 UI/UX Features
+### Mini App Mode
+- Automatic wallet connection in Coinbase App
+- Optimized UI for mobile experience
+- Direct frame creation and sharing
 
-### Modern Design
-- **Gradient Backgrounds**: Professional visual appeal
-- **Responsive Layout**: Works on desktop and mobile
-- **Loading States**: Smooth user experience
-- **Toast Notifications**: Real-time feedback
+## 🔧 Configuration
 
-### Smart Wallet Detection
-- **Frame Context**: Detects when running in Coinbase Wallet
-- **Wallet Type Display**: Shows Smart Wallet vs Regular Wallet
-- **Feature Indicators**: Highlights available capabilities
+### Environment Variables
+```env
+NEXT_PUBLIC_CDP_API_KEY=your_cdp_api_key
+NEXT_PUBLIC_CONTRACT_ADDRESS=your_contract_address
+NEXT_PUBLIC_USDC_ADDRESS=your_usdc_address
+```
+
+### Base Chain Configuration
+- **Network**: Base Sepolia testnet
+- **RPC**: Alchemy/Infura endpoint
+- **Explorer**: https://sepolia.basescan.org
+
+## 🎯 Base Ecosystem Benefits
+
+### For Users
+- **Zero Gas Fees**: Gas sponsorship via Base Pay
+- **Human-Readable Names**: No more copying/pasting addresses
+- **Social Integration**: Share and discover projects on Farcaster
+- **Mobile-First**: Seamless experience in Coinbase App
+
+### For Developers
+- **Base Native**: Built specifically for Base ecosystem
+- **ENS Integration**: Leverage existing identity infrastructure
+- **Social Features**: Built-in viral growth mechanisms
+- **Gas Optimization**: Efficient contract interactions
 
 ## 🚀 Deployment
 
 ### Vercel Deployment
 1. Connect your GitHub repository to Vercel
-2ironment variables in Vercel dashboard
+2. Set environment variables in Vercel dashboard
 3. Deploy automatically on push to main branch
 
-### Environment Variables for Production
-```env
-NEXT_PUBLIC_APP_URL=https://your-vercel-domain.vercel.app
-NEXT_PUBLIC_CDP_API_KEY=your_cdp_api_key
-OPENAI_API_KEY=your_openai_api_key
-```
-
-## 🔒 Security
-
-### Smart Contract Security
-- **OpenZeppelin**: Battle-tested contract libraries
-- **Access Control**: Proper permission management
-- **Reentrancy Protection**: Secure payment processing
-
-### Frontend Security
-- **Environment Variables**: Sensitive data protected
-- **Input Validation**: Client and server-side validation
-- **Error Handling**: Graceful error management
+### Contract Deployment
+1. Deploy smart contract to Base Sepolia
+2. Update contract address in environment variables
+3. Verify contract on Basescan
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature`)
-4.Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- **Coinbase Developer Platform**: MiniKit and CDP SDK
-- **Base Network**: Layer 2 scaling solution
-- **OpenAI**: GPT-4o for milestone generation
-- **Dynamic**: Smart Wallet infrastructure
-- **RainbowKit**: Wallet connection UI
-- **Wagmi**: Ethereum React hooks
-
-## 📞 Support
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/KeldrickD/freelance-invoice-ai/issues)
-- **Documentation**: Check the code comments for detailed explanations
-- **Community**: Join the Base ecosystem Discord
+- **Base Team**: For the amazing ecosystem and tools
+- **Coinbase**: For MiniKit and CDP platform
+- **Farcaster**: For social infrastructure
+- **xAI**: For AI-powered milestone generation
 
 ---
 
-**Built with ❤️ for the Coinbase Developer Platform Hackathon**
-
-*Transform your freelance workflow with AI-powered, wallet-native invoice management on Base!*
+Built with ❤️ for the Base ecosystem and Code:NYC Hackathon
