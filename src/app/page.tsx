@@ -6,7 +6,7 @@ import { parseUnits, formatUnits, isAddress } from 'viem';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+
 import { useMiniKit, useAddFrame, useComposeCast, useAuthenticate } from '@coinbase/onchainkit/minikit';
 import { 
   SparklesIcon, 

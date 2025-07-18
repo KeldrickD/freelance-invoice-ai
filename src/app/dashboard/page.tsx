@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, usePublicClient, useBalance } from 'wagmi';
+import { useAccount, useWriteContract, usePublicClient, useBalance } from 'wagmi';
 import { formatUnits } from 'viem';
 import { normalize } from 'viem/ens';
-import axios from 'axios';
+
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
