@@ -109,30 +109,12 @@ export default function Home() {
 
     try {
       setLoading(true);
-      
-      // Try to get AI-generated milestones from backend
-      try {
-        const response = await axios.post('http://localhost:3001/generate-milestones', {
-          description: `${description} (${amount} USDC)`,
-          amount
-        });
-        setMilestones(response.data);
-        toast.success('AI milestones generated successfully!');
-      } catch (backendError: unknown) {
-        // Fallback to mock data if backend is unavailable
-        const errorMessage = backendError instanceof Error ? backendError.message : 'Unknown error';
-        console.log('Backend unavailable, using mock data:', errorMessage);
-        
-        const mockMilestones = [
-          { name: 'Project Planning & Setup', amount: Math.floor(amount * 0.2) },
-          { name: 'Core Development', amount: Math.floor(amount * 0.5) },
-          { name: 'Testing & Refinement', amount: Math.floor(amount * 0.2) },
-          { name: 'Final Delivery & Documentation', amount: amount - Math.floor(amount * 0.2) - Math.floor(amount * 0.5) - Math.floor(amount * 0.2) }
-        ];
-        
-        setMilestones(mockMilestones);
-        toast.success('Mock milestones generated (backend unavailable)');
-      }
+      const response = await axios.post('http://localhost:3001/generate-milestones', {
+        description: `${description} (${amount} USDC)`,
+        amount
+      });
+      setMilestones(response.data);
+      toast.success('AI milestones generated successfully!');
     } catch (err) {
       toast.error('Failed to generate milestones');
       console.error(err);
