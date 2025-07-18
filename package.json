@@ -9,9 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@alchemy/aa-accounts": "^3.19.0",
-    "@alchemy/aa-alchemy": "^3.19.0",
-    "@alchemy/aa-core": "^3.19.0",
     "@coinbase/cdp-sdk": "^1.26.0",
     "@coinbase/onchainkit": "^0.38.17",
     "@coinbase/wallet-sdk": "^4.3.6",
